@@ -594,6 +594,10 @@ def main_create(parser, args):
         ssh_known_hosts=ssh_known_hosts,
     )
 
+    if args.wait:
+        args.name = args.hostname
+        main_wait(parser, args)
+
 
 def main_destroy(parser, args):
     for h in args.hostname:
@@ -710,6 +714,17 @@ def main(args):
 
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
+
+    wait_args = [
+        (('--timeout',), {'type': float, 'default': 120.0}),
+        (('--interval',), {'type': float, 'default': 8.0}),
+        (('--remote-wait-script',), {'default': DEFAULT_REMOTE_WAIT_SCRIPT}),
+        (('--insecure',), {'action': 'store_true'}),
+        (('--remote-wait-user',), {'default': 'ubuntu'}),
+        (('--without-ssh',), {'action': 'store_true'}),
+        (('--ssh-private-key-file',), {}),
+    ]
+
     create_subparser = subparsers.add_parser('create')
     create_subparser.set_defaults(func=main_create)
     create_subparser.add_argument(
@@ -724,12 +739,16 @@ def main(args):
         '--user-data', type=argparse.FileType('rb'))
     create_subparser.add_argument(
         '--meta-data', type=argparse.FileType('rb'))
+    for w_args, w_kwargs in wait_args:
+        create_subparser.add_argument(*w_args, **w_kwargs)
+
     create_subparser.add_argument('--password')
     create_subparser.add_argument('--log-console-output', action='store_true')
     create_subparser.add_argument('--backing-image-file')
     create_subparser.add_argument('--run-script-once', action='append')
     create_subparser.add_argument('--ssh-public-key-file')
     create_subparser.add_argument('--packages', action='append')
+    create_subparser.add_argument('--wait', default=False, action='store_true')
     create_subparser.add_argument('hostname')
     create_subparser.add_argument(
         'filters', nargs='*', metavar='filter',
@@ -749,17 +768,13 @@ def main(args):
     ssh_subparser.add_argument('--login-name', '-l')
     ssh_subparser.add_argument('name')
     ssh_subparser.add_argument('ssh_arguments', nargs='*')
+
     wait_subparser = subparsers.add_parser('wait')
     wait_subparser.set_defaults(func=main_wait)
-    wait_subparser.add_argument('--timeout', type=float, default=120.0)
-    wait_subparser.add_argument('--interval', type=float, default=8.0)
-    wait_subparser.add_argument('--remote-wait-script',
-        default=DEFAULT_REMOTE_WAIT_SCRIPT)
-    wait_subparser.add_argument('--insecure', action='store_true')
-    wait_subparser.add_argument('--remote-wait-user', default='ubuntu')
-    wait_subparser.add_argument('--without-ssh', action='store_true')
-    wait_subparser.add_argument('--ssh-private-key-file')
+    for w_args, w_kwargs in wait_args:
+        wait_subparser.add_argument(*w_args, **w_kwargs)
     wait_subparser.add_argument('name')
+
     args = parser.parse_args(args)
     args.func(parser, args)
 

@@ -284,6 +284,8 @@ def compose_domain_xml(name, volumes, cpu=1, memory=512, unsafe_caching=False,
             find('format').
             get('type')
             )
+        if disk_format_type == "iso":
+            disk_format_type = "raw"
         if unsafe_caching:
             disk_driver = E.driver(
                 name='qemu', type=disk_format_type, cache='unsafe')

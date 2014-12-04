@@ -163,7 +163,7 @@ def create_default_user_data(fobj, args, ssh_host_keys=None):
     data = {
         b'hostname': args.hostname.encode('ascii'),
         b'manage_etc_hosts': b'localhost',
-        b'snappy': {b'enable_ssh': True},
+        b'snappy': {b'ssh_enabled': True},
         b'ssh_keys': uvtool.ssh.generate_ssh_host_keys()[0],
     }
 

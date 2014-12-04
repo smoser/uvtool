@@ -180,6 +180,7 @@ def get_internal_user_data(args, ssh_host_keys=None):
         b'hostname': args.hostname.encode('ascii'),
         b'manage_etc_hosts': b'localhost',
         b'ssh_keys': uvtool.ssh.generate_ssh_host_keys()[0],
+        b'snappy': {b'ssh_enabled': True},
     }
 
     if ssh_host_keys:

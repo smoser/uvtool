@@ -47,6 +47,8 @@ LIBVIRT_POOL_NAME = 'uvtool'
 IMAGE_DIR = '/var/lib/uvtool/libvirt/images/' # must end in '/'; see use
 METADATA_DIR = '/var/lib/uvtool/libvirt/metadata'
 USEFUL_FIELD_NAMES = ['release', 'arch', 'label']
+SNAPPY_STREAM_URL = ('http://cloud-images.ubuntu.com/snappy/daily/streams/'
+                     'v1/index.json')
 
 
 def mkdir_p(path):
@@ -319,6 +321,9 @@ def main(argv=None):
         help='keyring to be specified to gpg via --keyring',
         default='/usr/share/keyrings/ubuntu-cloudimage-keyring.gpg'
     )
+    sync_subparser.add_argument('--snappy', dest='mirror_url',
+        action='store_const', const=SNAPPY_STREAM_URL,
+        help='set --source for snappy images')
     sync_subparser.add_argument('--source', dest='mirror_url',
         default='https://cloud-images.ubuntu.com/releases/')
     sync_subparser.add_argument('--no-authentication', action='store_true')

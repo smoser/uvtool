@@ -47,6 +47,7 @@ LIBVIRT_POOL_NAME = 'uvtool'
 IMAGE_DIR = '/var/lib/uvtool/libvirt/images/' # must end in '/'; see use
 METADATA_DIR = '/var/lib/uvtool/libvirt/metadata'
 USEFUL_FIELD_NAMES = ['release', 'arch', 'label']
+SNAPPY_STREAM_URL = 'http://cloud-images.ubuntu.com/snappy/'
 
 
 def mkdir_p(path):
@@ -255,6 +256,9 @@ def main_sync(args):
             args.filters.append(system_arch_filter())
             break
 
+    if args.snappy:
+        args.mirror_url = SNAPPY_STREAM_URL
+
     (mirror_url, initial_path) = simplestreams.util.path_from_mirror_url(
         args.mirror_url, args.path)
 
@@ -283,7 +287,11 @@ def system_arch_filter():
 
 def libvirt_pool_name_to_useful_description_string(libvirt_pool_name):
     volume_metadata = pool_metadata[libvirt_pool_name]
-    filters = ' '.join('='.join((key, volume_metadata[key])) for key in USEFUL_FIELD_NAMES)
+    info = []
+    for key in USEFUL_FIELD_NAMES:
+       if key in volume_metadata:
+          info.append('%s=%s' % (key, volume_metadata[key]))
+    filters = ' '.join(info)
     return ' '.join([filters, '(%s)' % volume_metadata['version_name']])
 
 
@@ -319,6 +327,8 @@ def main(argv=None):
         help='keyring to be specified to gpg via --keyring',
         default='/usr/share/keyrings/ubuntu-cloudimage-keyring.gpg'
     )
+    sync_subparser.add_argument('--snappy', action='store_true',
+        help='set --source for snappy images')
     sync_subparser.add_argument('--source', dest='mirror_url',
         default='https://cloud-images.ubuntu.com/releases/')
     sync_subparser.add_argument('--no-authentication', action='store_true')

@@ -152,12 +152,28 @@ def get_ssh_authorized_keys(filename):
         return []
 
 
-def create_default_user_data(fobj, args, ssh_host_keys=None):
-    """Write some sensible default cloud-init user-data to the given file
-    object.
+def get_userdata_fobj(args, ssh_host_keys=None):
+    """create a file object that contains user-data based on input"""
+    if args.user_data and not args.add_user_data:
+        # user provided '--user-data', but no '--add-user-data'
+        return args.user_data
 
-    """
+    fobjs = args.add_user_data
+    if args.user_data:
+        fobjs.insert(0, args.user_data)
+        archive = []
+    else:
+        archive = get_internal_user_data(args, ssh_host_keys)
 
+    for fobj in fobjs:
+        archive.append(fobj.read())
+
+    return StringIO.StringIO(
+        '#cloud-config-archive\n' + yaml.safe_dump(archive))
+
+
+def get_internal_user_data(args, ssh_host_keys=None):
+    "return a string with a default cloud-init user-data blob"
     ssh_authorized_keys = get_ssh_authorized_keys(args.ssh_public_key_file)
 
     data = {
@@ -186,8 +202,7 @@ def create_default_user_data(fobj, args, ssh_host_keys=None):
             for s in itertools.chain(*[p.split(',') for p in args.packages])
         ]
 
-    fobj.write("#cloud-config\n")
-    fobj.write(yaml.dump(data))
+    return ["#cloud-config\n" + yaml.safe_dump(data)]
 
 
 def create_default_meta_data(fobj, args):
@@ -557,6 +572,9 @@ def main_create(parser, args):
             file=sys.stderr
         )
 
+    if args.user_data and args.add_user_data:
+        parser.error("--user-data and --add-user-data conflict")
+
     kvm_ok, is_kvm_ok_output = check_kvm_ok()
     if not kvm_ok:
         print(
@@ -567,12 +585,7 @@ def main_create(parser, args):
 
     ssh_host_keys, ssh_known_hosts = uvtool.ssh.generate_ssh_host_keys()
 
-    user_data_fobj = apply_default_fobj(
-        args, 'user_data', functools.partial(
-            create_default_user_data,
-            ssh_host_keys=ssh_host_keys
-        )
-    )
+    user_data_fobj = get_userdata_fobj(args, ssh_host_keys=ssh_host_keys)
     meta_data_fobj = apply_default_fobj(
         args, 'meta_data', create_default_meta_data
     )
@@ -736,6 +749,9 @@ def main(args):
     create_subparser.add_argument('--unsafe-caching', action='store_true')
     create_subparser.add_argument(
         '--user-data', type=argparse.FileType('rb'))
+    create_subparser.add_argument(
+        '--add-user-data', type=argparse.FileType('rb'), action='append',
+        default=[], help='add additional user-data part')
     create_subparser.add_argument(
         '--meta-data', type=argparse.FileType('rb'))
     for w_args, w_kwargs in wait_args:

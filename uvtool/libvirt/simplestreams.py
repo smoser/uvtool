@@ -249,6 +249,12 @@ class LibvirtMirror(simplestreams.mirrors.BasicMirrorWriter):
 
 
 def main_sync(args):
+    # add arch filter if there is none.
+    for swith in ('arch=', 'arch~', 'arch!'):
+        if any([f.startswith(swith) for f in args.filters]):
+            args.filters.append(system_arch_filter())
+            break
+
     (mirror_url, initial_path) = simplestreams.util.path_from_mirror_url(
         args.mirror_url, args.path)
 
@@ -268,6 +274,11 @@ def main_sync(args):
     tmirror = LibvirtMirror(filter_list, verbose=args.verbose)
     tmirror.sync(smirror, initial_path)
     clean_extraneous_images()
+
+
+def system_arch_filter():
+    return 'arch=%s' % subprocess.check_output(
+        ['dpkg', '--print-architecture']).decode().strip()
 
 
 def libvirt_pool_name_to_useful_description_string(libvirt_pool_name):
@@ -312,7 +323,7 @@ def main(argv=None):
         default='https://cloud-images.ubuntu.com/releases/')
     sync_subparser.add_argument('--no-authentication', action='store_true')
     sync_subparser.add_argument('filters', nargs='*', metavar='filter',
-        default=["arch=%s" % system_arch])
+        default=[system_arch_filter()])
 
     query_subparser = subparsers.add_parser('query')
     query_subparser.set_defaults(func=main_query)

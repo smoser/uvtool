@@ -729,7 +729,7 @@ def main(args):
 
     wait_args = [
         (('--timeout',), {'type': float, 'default': 120.0}),
-        (('--interval',), {'type': float, 'default': 8.0}),
+        (('--interval',), {'type': float, 'default': 1.0}),
         (('--remote-wait-script',), {'default': DEFAULT_REMOTE_WAIT_SCRIPT}),
         (('--insecure',), {'action': 'store_true'}),
         (('--remote-wait-user',), {'default': 'ubuntu'}),

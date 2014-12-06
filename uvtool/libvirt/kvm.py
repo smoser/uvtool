@@ -745,7 +745,11 @@ def main(args):
     create_subparser.add_argument('--template', default=DEFAULT_TEMPLATE)
     create_subparser.add_argument('--memory', default=512, type=int)
     create_subparser.add_argument('--cpu', default=1, type=int)
-    create_subparser.add_argument('--disk', default=8, type=int)
+    # TODO: reset this to 8GB after snappy images are smaller
+    # also TODO, fail sanely if you try to create smaller than the
+    # source volume.
+    create_subparser.add_argument('--disk', default=10, type=int,
+                                  help='size of disk in GB')
     create_subparser.add_argument('--bridge')
     create_subparser.add_argument('--unsafe-caching', action='store_true')
     create_subparser.add_argument(

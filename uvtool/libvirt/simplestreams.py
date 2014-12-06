@@ -47,8 +47,7 @@ LIBVIRT_POOL_NAME = 'uvtool'
 IMAGE_DIR = '/var/lib/uvtool/libvirt/images/' # must end in '/'; see use
 METADATA_DIR = '/var/lib/uvtool/libvirt/metadata'
 USEFUL_FIELD_NAMES = ['release', 'arch', 'label']
-SNAPPY_STREAM_URL = ('http://cloud-images.ubuntu.com/snappy/daily/streams/'
-                     'v1/index.json')
+SNAPPY_STREAM_URL = 'http://cloud-images.ubuntu.com/snappy/'
 
 
 def mkdir_p(path):

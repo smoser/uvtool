@@ -256,6 +256,9 @@ def main_sync(args):
             args.filters.append(system_arch_filter())
             break
 
+    if args.snappy:
+        args.mirror_url = SNAPPY_STREAM_URL
+
     (mirror_url, initial_path) = simplestreams.util.path_from_mirror_url(
         args.mirror_url, args.path)
 
@@ -320,8 +323,7 @@ def main(argv=None):
         help='keyring to be specified to gpg via --keyring',
         default='/usr/share/keyrings/ubuntu-cloudimage-keyring.gpg'
     )
-    sync_subparser.add_argument('--snappy', dest='mirror_url',
-        action='store_const', const=SNAPPY_STREAM_URL,
+    sync_subparser.add_argument('--snappy', action='store_true',
         help='set --source for snappy images')
     sync_subparser.add_argument('--source', dest='mirror_url',
         default='https://cloud-images.ubuntu.com/releases/')
